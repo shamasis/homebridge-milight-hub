@@ -1,6 +1,10 @@
 # homebridge-milight-hub
 Homebridge plugin for Milight Hub hosted on ESP8266
 
+```
+npm install homebridge-milight-hub -g
+```
+
 
 ```
 {
