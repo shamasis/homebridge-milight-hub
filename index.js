@@ -45,5 +45,5 @@ module.exports = function (homebridge) {
     }
   });
 
-  homebridge.registerAccessory("milight", "Milight", Milight);
+  homebridge.registerAccessory("milight-hub", "Milight", Milight);
 }
