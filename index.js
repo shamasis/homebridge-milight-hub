@@ -1,6 +1,41 @@
 const _ = require('lodash'),
   request = require('request');
 
+var rgbToHsl;
+
+rgbToHsl = function (color) {
+  !color && (color = {r: 0, g: 0, b: 0});
+
+  var
+    r = color.r / 255,
+    g = color.g / 255,
+    b = color.b / 255,
+    max = Math.max(r, g, b),
+    min = Math.min(r, g, b),
+    h, s, l = (max + min) / 2;
+
+  if (max == min){
+      h = s = 0; // achromatic
+  }
+  else {
+      let d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+      switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+  }
+
+  return {
+    h: Math.round(h * 360),
+    s: Math.round(s * 100),
+    l: Math.round(l * 100)
+  };
+};
+
 module.exports = function (homebridge) {
   const
     Service = homebridge.hap.Service,
@@ -16,7 +51,7 @@ module.exports = function (homebridge) {
     });
 
     this.id = config.id ? String(config.id) : '0';
-    this.type = config.type ? String(config.type) : 'rgb';
+    this.type = config.type ? String(config.type) : 'fut089';
     this.group = config.group ? String(config.group) : '0';
   };
 
@@ -62,33 +97,57 @@ module.exports = function (homebridge) {
           });
         });
 
-        lightbulbService.addCharacteristic(Characteristic.Brightness)
-          .on('get', (callback) => {
-            this.getDeviceState((err, state) => {
-              callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
-            });
-          })
-          .on('set', (value, callback) => {
-            this.setDeviceState({ level: value }, (err, state) => {
-              callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
-            });
+      lightbulbService.addCharacteristic(Characteristic.Brightness)
+        .on('get', (callback) => {
+          this.getDeviceState((err, state) => {
+            callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
           });
+        })
+        .on('set', (value, callback) => {
+          this.setDeviceState({ level: value }, (err, state) => {
+            callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
+          });
+        });
 
-        lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
-          .on('get', (callback) => {
-            this.getDeviceState((err, state) => {
-              callback(err, _.get(state, 'color_temp', 262));
-            });
-          })
-          .on('set', (value, callback) => {
-            this.setDeviceState({ temperature: (((value - 153) / 217) * 100) }, (err, state) => {
-              callback(err, _.get(state, 'color_temp', 262));
-            });
-          })
-          .setProps({
-              minValue: 153,
-              maxValue: 370
+      lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
+        .on('get', (callback) => {
+          this.getDeviceState((err, state) => {
+            callback(err, _.get(state, 'color_temp', 262));
           });
+        })
+        .on('set', (value, callback) => {
+          this.setDeviceState({ temperature: (((value - 153) / 217) * 100) }, (err, state) => {
+            callback(err, _.get(state, 'color_temp', 262));
+          });
+        })
+        .setProps({
+            minValue: 153,
+            maxValue: 370
+        });
+
+      lightbulbService.addCharacteristic(Characteristic.Hue)
+        .on('get', (callback) => {
+          this.getDeviceState((err, state) => {
+            callback(err, rgbToHsl(_.get(state, 'color')).h);
+          });
+        })
+        .on('set', (value, callback) => {
+          this.setDeviceState({ hue: value }, (err, state) => {
+            callback(err, rgbToHsl(_.get(state, 'color')).h);
+          });
+        });
+
+      lightbulbService.addCharacteristic(Characteristic.Saturation)
+        .on('get', (callback) => {
+          this.getDeviceState((err, state) => {
+            callback(err, rgbToHsl(_.get(state, 'color')).s);
+          });
+        })
+        .on('set', (value, callback) => {
+          this.setDeviceState({ saturation: value }, (err, state) => {
+            callback(err, rgbToHsl(_.get(state, 'color')).s);
+          });
+        });
 
       return [lightbulbService];
     }
