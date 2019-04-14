@@ -1,6 +1,6 @@
 {
   "name": "homebridge-milight-hub",
-  "version": "0.0.1-beta.11",
+  "version": "0.0.1-beta.12",
   "description": "Homebridge plugin for Milight Hub hosted on ESP8266",
   "main": "index.js",
   "dependencies": {
