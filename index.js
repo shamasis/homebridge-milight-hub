@@ -85,7 +85,7 @@ module.exports = function (homebridge) {
     getServices: function () {
       var lightbulbService = new Service.Lightbulb(this.name);
 
-      lightbulbService.addCharacteristic(this.Characteristic.StatusActive)
+      lightbulbService.addCharacteristic(Characteristic.StatusActive)
         .on('get', (callback) => {
           this.getDeviceState((err, state) => {
             callback(err, true);
