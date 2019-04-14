@@ -85,6 +85,18 @@ module.exports = function (homebridge) {
     getServices: function () {
       var lightbulbService = new Service.Lightbulb(this.name);
 
+      lightbulbService
+        .addService(Service.AccessoryInformation)
+        .setCharacteristic(Characteristic.Name, this.name)
+        .setCharacteristic(Characteristic.Manufacturer, 'Easybulb Limited');
+
+      lightbulbService.addCharacteristic(this.Characteristic.StatusActive)
+        .on('get', (callback) => {
+          this.getDeviceState((err, state) => {
+            callback(err, true);
+          });
+        });
+
       lightbulbService.getCharacteristic(Characteristic.On)
         .on('get', (callback) => {
           this.getDeviceState((err, state) => {
