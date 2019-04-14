@@ -21,23 +21,44 @@ module.exports = function (homebridge) {
   };
 
   Object.assign(Milight.prototype, {
+    getDeviceState: function (callback) {
+      this.request.get(`/gateways/${this.id}/${this.type}/${this.group}`, (err, resp, body) => {
+        if (err) { return callback(err); }
+        if (resp && (resp.statusCode !== 200)) {
+          return callback(new Error('milight: unable to query device - code:' + resp.statusCode));
+        }
+        callback(null, body);
+      });
+    },
+
+    setDeviceState: function (state, callback) {
+      this.request({
+        uri: `/gateways/${this.id}/${this.type}/${this.group}`,
+        method: 'put',
+        json: state
+      }, (err, resp, body) => {
+        if (err) { return callback(err); }
+        if (resp && (resp.statusCode !== 200)) {
+          return callback(new Error('milight: unable to query device - code:' + resp.statusCode));
+        }
+
+        callback(null, body);
+      });
+    },
+
     getServices: function () {
       var lightbulbService = new Service.Lightbulb(this.name);
 
       lightbulbService.getCharacteristic(Characteristic.On)
         .on('get', (callback) => {
-          this.request.get(`/gateways/${this.id}/${this.type}/${this.group}`, (err, resp, body) => {
-            callback(err, _.isEqual(_.get(body, 'state'), 'ON'));
+          this.getDeviceState((err, state) => {
+            callback(err, _.isEqual(_.get(state, 'state'), 'ON'));
           });
         })
 
         .on('set', (state, callback) => {
-          this.request({
-            uri: `/gateways/${this.id}/${this.type}/${this.group}`,
-            method: 'put',
-            json: { status: (state > 0) }
-          }, (err, resp, body) => {
-            callback(err, _.isEqual(_.get(body, 'state'), 'ON'));
+          this.setDeviceState({ status: (state > 0) }, (err, state) => {
+            callback(err, _.isEqual(_.get(state, 'state'), 'ON'));
           });
         });
 
