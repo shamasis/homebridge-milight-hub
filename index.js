@@ -53,6 +53,7 @@ module.exports = function (homebridge) {
     this.id = config.id ? String(config.id) : '0';
     this.type = config.type ? String(config.type) : 'fut089';
     this.group = config.group ? String(config.group) : '0';
+    this.white = Boolean(config.white);
   };
 
   Object.assign(Milight.prototype, {
@@ -109,49 +110,52 @@ module.exports = function (homebridge) {
           });
         });
 
-      lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
-        .on('get', (callback) => {
-          this.getDeviceState((err, state) => {
-            callback(err, _.get(state, 'color_temp', 262));
+      if (this.white) {
+        lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
+          .on('get', (callback) => {
+            this.getDeviceState((err, state) => {
+              callback(err, _.get(state, 'color_temp', 262));
+            });
+          })
+          .on('set', (value, callback) => {
+            this.setDeviceState({ temperature: (((value - 153) / 217) * 100) }, (err, state) => {
+              callback(err, _.get(state, 'color_temp', 262));
+            });
+          })
+          .setProps({
+              minValue: 153,
+              maxValue: 370
           });
-        })
-        .on('set', (value, callback) => {
-          this.setDeviceState({ temperature: (((value - 153) / 217) * 100) }, (err, state) => {
-            callback(err, _.get(state, 'color_temp', 262));
+      }
+      else {
+        lightbulbService.addCharacteristic(Characteristic.Hue)
+          .on('get', (callback) => {
+            this.getDeviceState((err, state) => {
+              callback(err, rgbToHsl(_.get(state, 'color')).h);
+            });
+          })
+          .on('set', (value, callback) => {
+            this.setDeviceState({ hue: value }, (err, state) => {
+              callback(err, rgbToHsl(_.get(state, 'color')).h);
+            });
           });
-        })
-        .setProps({
-            minValue: 153,
-            maxValue: 370
-        });
 
-      lightbulbService.addCharacteristic(Characteristic.Hue)
-        .on('get', (callback) => {
-          this.getDeviceState((err, state) => {
-            callback(err, rgbToHsl(_.get(state, 'color')).h);
+        lightbulbService.addCharacteristic(Characteristic.Saturation)
+          .on('get', (callback) => {
+            this.getDeviceState((err, state) => {
+              callback(err, rgbToHsl(_.get(state, 'color')).s);
+            });
+          })
+          .on('set', (value, callback) => {
+            this.setDeviceState({ saturation: value }, (err, state) => {
+              callback(err, rgbToHsl(_.get(state, 'color')).s);
+            });
           });
-        })
-        .on('set', (value, callback) => {
-          this.setDeviceState({ hue: value }, (err, state) => {
-            callback(err, rgbToHsl(_.get(state, 'color')).h);
-          });
-        });
-
-      lightbulbService.addCharacteristic(Characteristic.Saturation)
-        .on('get', (callback) => {
-          this.getDeviceState((err, state) => {
-            callback(err, rgbToHsl(_.get(state, 'color')).s);
-          });
-        })
-        .on('set', (value, callback) => {
-          this.setDeviceState({ saturation: value }, (err, state) => {
-            callback(err, rgbToHsl(_.get(state, 'color')).s);
-          });
-        });
+      }
 
       return [lightbulbService];
     }
   });
 
-  homebridge.registerAccessory("milight-hub", "Milight", Milight);
+  homebridge.registerAccessory('milight-hub', 'Milight', Milight);
 }

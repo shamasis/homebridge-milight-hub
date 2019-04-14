@@ -8,13 +8,16 @@ npm install homebridge-milight-hub -g
 
 ```
 {
-  accessories: [
-    accessory: 'Milight',
+  accessories: [{
+    accessory: 'Milight'
     name: 'Bulb 1',
     id: '0x3039',
-    type: 'fut089',
     group: '1',
-    hub: 'http://milight-hub.local'
+
+    // optional properties
+    type: 'fut089',
+    hub: 'http://milight-hub.local',
+    white: false
   }]
 }
 ```
