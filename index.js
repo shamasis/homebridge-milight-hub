@@ -77,17 +77,17 @@ module.exports = function (homebridge) {
         lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
           .on('get', (callback) => {
             this.getDeviceState((err, state) => {
-              callback(err, ((_.get(state, 'color_temp', 262) - 153) / 217) * 100);
+              callback(err, _.get(state, 'color_temp', 262));
             });
           })
           .on('set', (value, callback) => {
-            this.setDeviceState({ temperature: value }, (err, state) => {
-              callback(err, ((_.get(state, 'color_temp', 262) - 153) / 217) * 100);
+            this.setDeviceState({ temperature: (((value - 153) / 217) * 100) }, (err, state) => {
+              callback(err, _.get(state, 'color_temp', 262));
             });
           })
           .setProps({
-              minValue: 0,
-              maxValue: 100
+              minValue: 153,
+              maxValue: 370
           });
 
       return [lightbulbService];
