@@ -63,15 +63,31 @@ module.exports = function (homebridge) {
         });
 
         lightbulbService.addCharacteristic(Characteristic.Brightness)
-          .on("get", (callback) => {
+          .on('get', (callback) => {
             this.getDeviceState((err, state) => {
               callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
             });
           })
-          .on("set", (value, callback) => {
+          .on('set', (value, callback) => {
             this.setDeviceState({ level: value }, (err, state) => {
               callback(err, Math.round((_.get(state, 'brightness', 0) / 254) * 100));
             });
+          });
+
+        lightbulbService.addCharacteristic(Characteristic.ColorTemperature)
+          .on('get', (callback) => {
+            this.getDeviceState((err, state) => {
+              callback(err, ((_.get(state, 'color_temp', 262) - 153) / 217) * 100);
+            });
+          })
+          .on('set', (value, callback) => {
+            this.setDeviceState({ temperature: value }, (err, state) => {
+              callback(err, ((_.get(state, 'color_temp', 262) - 153) / 217) * 100);
+            });
+          })
+          .setProps({
+              minValue: 0,
+              maxValue: 100
           });
 
       return [lightbulbService];
