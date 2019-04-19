@@ -1,0 +1,36 @@
+{
+  "name": "homebridge-milight-hub",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for Milight Hub hosted on ESP8266",
+  "main": "index.js",
+  "dependencies": {
+    "lodash": "^4.17.11",
+    "request": "^2.88.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shamasis/homebridge-milight-hub.git"
+  },
+  "keywords": [
+    "iot",
+    "homebridge",
+    "homebridge-plugin",
+    "plugin",
+    "milight",
+    "homekit"
+  ],
+  "engines": {
+    "node": ">=6",
+    "homebridge": ">=0.2.5"
+  },
+  "author": "Shamasis Bhattacharya <mail@shamasis.net>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/shamasis/homebridge-milight-hub/issues"
+  },
+  "homepage": "https://github.com/shamasis/homebridge-milight-hub#readme"
+}
