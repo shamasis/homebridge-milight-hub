@@ -26,7 +26,7 @@ Once the plugin is installed, edit homebridge `config.json` to include the follo
 ```
 {
   "accessories": [{
-    "accessory": "Milight"
+    "accessory": "Milight",
     "name": "My Bulb Name",
     "id": "0x3039",
     "group": "1"
