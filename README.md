@@ -26,13 +26,20 @@ Once the plugin is installed, edit homebridge `config.json` to include the follo
 ```
 {
   "accessories": [{
-    "accessory": "Milight"
+    "accessory": "Milight",
     "name": "My Bulb Name",
     "id": "0x3039",
+    "type": "rgb_cct",
     "group": "1"
   }]
 }
 ```
+
+> You can provide additional `"hub": "[url of your hub]"` in config in case you have multiple hubs or your hub is not
+> located using default `http://milight-hub.local` DNS lookup.
+>
+> RECOMMENDED: Use IP address of your hub, say `http://192.168.0.200`, in hub settings in case DNS lookup takes time
+> and makes the bulbs slow to respond.
 
 Repeat this for as many bulbs as you have.
 
