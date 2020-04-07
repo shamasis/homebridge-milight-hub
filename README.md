@@ -24,6 +24,7 @@ Once the plugin is installed, edit homebridge `config.json` to include the follo
 - The `"accessory"` key must have `"Milight"` as value
 - The bulb must be provided a name to begin with
 - You should have the "group" and "id" of the bulb as defined in your Milight Hub web interface when you paired it.
+- `"type"` can be the remote type Milight Hub is to emulate, such as `"rgb_cct"`, `"rgb"`, `"fut089"`, etc
 
 ```
 {
@@ -36,20 +37,13 @@ Once the plugin is installed, edit homebridge `config.json` to include the follo
   }]
 }
 ```
+Repeat this for as many bulbs as you have.
 
 > You can provide additional `"hub": "[url of your hub]"` in config in case you have multiple hubs or your hub is not
 > located using default `http://milight-hub.local` DNS lookup.
 >
 > RECOMMENDED: Use IP address of your hub, say `http://192.168.0.200`, in hub settings in case DNS lookup takes time
 > and makes the bulbs slow to respond.
-
-Repeat this for as many bulbs as you have.
-
-You can optionally add more advanced configuration such as:
-
-- `"type"` can be the remote type Milight Hub is to emulate, such as `"fut089"` (default), `"rgb"`, etc
-- `"hub"` the URL of the hub. This is set to `"http://milight-hub.local"` as default and should work out of the box.
-- `"white"` can be set to boolean `true` if your bulb does not support colour.
 
 ## Usage
 
