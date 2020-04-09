@@ -19,7 +19,14 @@ Within your homebridge system, install the plugin using the command:
 npm install homebridge-milight-hub -g;
 ```
 
-Once the plugin is installed, edit homebridge `config.json` to include the following within `accessories` section. The following are the minimum required configuration parameters:
+Once the plugin is installed, edit homebridge `config.json` to activate plugin. There are two ways to use this plugin:
+
+1. Individual Manually Added Accessories.
+2. Adding it as a platform to auto include all `Aliases` defined in `milight-hub.local` web interface.
+
+### (1) Adding Bulbs Directly in Config
+
+ Include the following within `accessories` section. The following are the minimum required configuration parameters:
 
 - The `"accessory"` key must have `"Milight"` as value
 - The bulb must be provided a name to begin with
@@ -45,10 +52,32 @@ Repeat this for as many bulbs as you have.
 > RECOMMENDED: Use IP address of your hub, say `http://192.168.0.200`, in hub settings in case DNS lookup takes time
 > and makes the bulbs slow to respond.
 
+
+### (2) Auto adding all bulbs addded directly in Milight Hub
+
+In this manner, you would not need to manually add bulbs. This plugin will automatically list all bulbs that has been
+added as an Alias in `milight-hub.local` web interface. To do that, simply add the following in config section.
+
+```
+{
+  "name": "Milight Hub",
+  "platform": "Milight Hub"
+}
+```
+
+- You can point to a specific milight hub by providing `"hub": "http://<your-hub-ip/"` as optional setting
+- You can add multiple hubs
+- It is recommended that even for default hub, provide the IP address of the hub in the settings (this makes DNS
+  lookup time quite fast.)
+
+#### Device Name (Aliases)
+To know more about Milight Hub device aliases, visit [https://github.com/sidoh/esp8266_milight_hub#device-aliases](https://github.com/sidoh/esp8266_milight_hub#device-aliases)
+
+To configure your device aliases, use your browser to open your hub IP address. You will be presented with a page
+similar to what is shown below. There you may select your device configuration and then add a Device Name.
+
+![Milight Hub Screenshot](https://user-images.githubusercontent.com/589893/61682228-a8151700-acc5-11e9-8b86-1e21efa6cdbe.png)
+
 ## Usage
 
-Once the plugin is installed and Homebridge restarted, the bulb should appear within the Home app of your ios devices.
-
-## Future Roadmap
-
-- [ ] Add Homebridge platform support for automatic configuration of bulbs (waiting on APIs on Milight Hub.)
+Once the plugin is installed, configured and Homebridge restarted, the bulbs should appear within the Home app of your ios/mac devices.
