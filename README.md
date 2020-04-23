@@ -76,7 +76,8 @@ To know more about Milight Hub device aliases, visit [https://github.com/sidoh/e
 To configure your device aliases, use your browser to open your hub IP address. You will be presented with a page
 similar to what is shown below. There you may select your device configuration and then add a Device Name.
 
-![Milight Hub Screenshot](https://user-images.githubusercontent.com/589893/61682228-a8151700-acc5-11e9-8b86-1e21efa6cdbe.png)
+![Milight Alias Apr-23-2020 00-39-08](https://user-images.githubusercontent.com/232373/80023519-45bea080-84fb-11ea-9af9-70ca941ed063.gif)
+
 
 ## Usage
 
