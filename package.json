@@ -1,6 +1,7 @@
 {
+  "displayName": "Milight Hub",
   "name": "homebridge-milight-hub",
-  "version": "1.0.0",
+  "version": "2.0.0-beta.101",
   "description": "Homebridge plugin for Milight Hub hosted on ESP8266",
   "main": "index.js",
   "dependencies": {
@@ -24,8 +25,8 @@
     "homekit"
   ],
   "engines": {
-    "node": ">=6",
-    "homebridge": ">=0.2.5"
+    "node": ">=10.17.0",
+    "homebridge": ">=1.0.0"
   },
   "author": "Shamasis Bhattacharya <mail@shamasis.net>",
   "license": "MIT",
