@@ -7,6 +7,9 @@ const request = require('request'),
  * Each accessory may expose multiple services of different service types.
  */
 class MilightPlatformAccessory {
+  static getUUIDBaseForDevice (device) {
+    return `${device.displayName}-${device.deviceId}-${device.remoteType}-${device.deviceGroup}`;
+  }
   
   /**
    * Construct the accessory from stored state

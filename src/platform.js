@@ -28,7 +28,7 @@ class MilightPlatform {
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
-      this.discoverDevices();
+      this.loadDevices();
     });
   }
 
@@ -48,13 +48,13 @@ class MilightPlatform {
    * Accessories must only be registered once, previously created accessories
    * must not be registered again to prevent "duplicate UUID" errors.
    */
-  discoverDevices() {
+  loadDevices() {
 
     const configuredAccessories = this.config.accessories;
     
     configuredAccessories.forEach((device) => {
       
-      const uuid = this.api.hap.uuid.generate(device.displayName),
+      const uuid = this.api.hap.uuid.generate(MilightPlatformAccessory.getUUIDBaseForDevice(device)),
         existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
         
       if (existingAccessory) {
@@ -97,7 +97,7 @@ class MilightPlatform {
       let accessoriesToRemove = [];
       this.accessories.forEach((existingAccessory) => {
         const matchingAccessory = configuredAccessories.find((device) => {
-            const uuid = this.api.hap.uuid.generate(device.displayName);
+            const uuid = this.api.hap.uuid.generate(MilightPlatformAccessory.getUUIDBaseForDevice(device));
             return uuid === existingAccessory.UUID;
           });
 
