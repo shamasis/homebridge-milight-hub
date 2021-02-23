@@ -1,5 +1,7 @@
 # homebridge-milight-hub
 
+> v2.0.0 beta is under development. v2.0.0 is NOT compatible with v1. You will need to re-setup your config and bulbs for v2.0.0
+
 This allows HomeKit (Siri) to control your MiLights using Homebridge and [DIY Milight Hub](https://github.com/sidoh/esp8266_milight_hub) hosted on ESP8266 (or equivalent).
 
 > This plugin is intended to be used with DIY [Milight Hub](https://github.com/sidoh/esp8266_milight_hub) RF to Wifi setup. If you already have Milight 2.4G RF Bridge, then you should directly use [homebridge-milight](https://www.npmjs.com/package/homebridge-milight) plugin.

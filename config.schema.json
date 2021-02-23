@@ -36,14 +36,15 @@
               "title": "Type of remote",
               "type": "string",
               "required": true,
-              "default": "rgb_cct"
+              "default": "rgb_cct",
+              "enum": ["rgb_cct", "rgbw", "rgb", "cct", "fut089", "fut091", "fut020"]
             },
             "deviceGroup": {
               "title": "Group of your bulb",
               "type": "integer",
-              "minLength": 1,
               "required": true,
-              "default": 1
+              "default": 1,
+              "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8]
             }
           }
         }

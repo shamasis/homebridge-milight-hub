@@ -8,22 +8,27 @@ const request = require('request'),
  */
 class MilightPlatformAccessory {
   
-  constructor(platform/*: MilightPlatform*/, accessory/*: PlatformAccessory*/) {
+  /**
+   * Construct the accessory from stored state
+   * 
+   * @param {MilightPlatform} platform 
+   * @param {PlatformAccessory} accessory 
+   */
+  constructor (platform, accessory) {
     this.platform = platform;
     this.accessory = accessory;
     this.device = this.accessory.context.device || (this.accessory.context.device = {});
     this.state = this.accessory.context.state || (this.accessory.context.state = {});
 
-    /**
-     * These are just used to create a working example
-     * You should implement your own code to track the state of your accessory
-     */
+    // Hydrate the state of the accessory
     (typeof this.state.status !== 'string') && (this.state.status = 'off');
     (!Number.isFinite(this.state.level)) && (this.state.level = 50);
     (!Number.isFinite(this.state.color_temp)) && (this.state.color_temp = 262);
     (!Number.isFinite(this.state.hue)) && (this.state.hue = 0);
     (!Number.isFinite(this.state.saturation)) && (this.state.saturation = 0);
 
+
+    // create a request instance that will be used subsequently 
     this.request = request.defaults({
       baseUrl: this.platform.config.hub,
       uri: `/gateways/${this.device.deviceId}/${this.device.remoteType}/${this.device.deviceGroup}`,
@@ -75,27 +80,39 @@ class MilightPlatformAccessory {
       });
   }
 
+  sendMessageToHub(intent, payload, callback) {
+    request({
+      baseUrl: this.platform.config.hub,
+      uri: `/gateways/${this.device.deviceId}/${this.device.remoteType}/${this.device.deviceGroup}`,
+      method: 'put',
+      json: payload,
+      timeout: 5000
+    }, (err) => {
+      if (err) {
+        this.platform.log.error(`[${this.device.displayName}] Error setting Characteristic ${intent}. `, err.message);
+        return callback(err);
+      }
+
+      this.platform.log.debug(`[${this.device.displayName}] Set ${intent} →`, payload);
+      callback(null);
+    });
+  }
+
   setOn(value/*: CharacteristicValue*/, callback/*: CharacteristicSetCallback*/) {
     value = Boolean(value);
 
     // implement your own code to turn your device on/off
     this.state.status = value ? 'on' : 'off';
 
-    this.request({
-      method: 'put',
-      json: {
-        status: this.state.status,
-        level: this.state.level
-      }
-    }, (err, res) => {
-      this.platform.log.debug('Set Characteristic On ->', value);
-      callback(err);
-    });
+    this.sendMessageToHub('On', {
+      status: this.state.status,
+      level: this.state.level
+    }, callback);
   }
 
   getOn(callback/*: CharacteristicGetCallback*/) {
     const value = (this.state.status === 'on');
-    this.platform.log.debug('Get Characteristic On ->', value);
+    this.platform.log.debug(`[${this.device.displayName}] Get On  →`, value);
     callback(null, value);
   }
 
@@ -105,21 +122,15 @@ class MilightPlatformAccessory {
     // implement your own code to set the brightness
     this.state.level = value;
 
-    this.request({
-      method: 'put',
-      json: {
-        status: this.state.status,
-        level: this.state.level
-      }
-    }, (err, res) => {
-      this.platform.log.debug('Set Characteristic Brightness -> ', value);
-      callback(err);
-    });
+    this.sendMessageToHub('Brightness', {
+      status: this.state.status,
+      level: this.state.level
+    }, callback);
   }
 
   getBrightness(callback/*: CharacteristicGetCallback*/) {
     const value = this.state.level;
-    this.platform.log.debug('Get Characteristic Brightness ->', value);
+    this.platform.log.debug(`[${this.device.displayName}] Get Brightness  →`, value);
     callback(null, value);
   }
 
@@ -127,23 +138,17 @@ class MilightPlatformAccessory {
     value = Number(value);
     this.state.hue = value;
 
-    this.request({
-      method: 'put',
-      json: {
-        status: this.state.status,
-        level: this.state.level,
-        hue: this.state.hue,
-        saturation: this.state.saturation
-      }
-    }, (err, res) => {
-      this.platform.log.debug('Set Characteristic Hue -> ', value);
-      callback(err);
-    });
+    this.sendMessageToHub('Hue', {
+      status: this.state.status,
+      level: this.state.level,
+      hue: this.state.hue,
+      saturation: this.state.saturation
+    }, callback);
   }
 
   getHue(callback) {
     const value = this.state.hue;
-    this.platform.log.debug('Get Characteristic Hue -> ', value);
+    this.platform.log.debug(`[${this.device.displayName}] Get Hue  →`, value);
     callback(null, value);
   }
 
@@ -151,23 +156,17 @@ class MilightPlatformAccessory {
     value = Number(value);
     this.state.saturation = value;
 
-    this.request({
-      method: 'put',
-      json: {
-        status: this.state.status,
-        level: this.state.level,
-        hue: this.state.hue,
-        saturation: this.state.saturation
-      }
-    }, (err, res) => {
-      this.platform.log.debug('Set Characteristic Saturation -> ', value);
-      callback(err);
-    });
+    this.sendMessageToHub('Saturation', {
+      status: this.state.status,
+      level: this.state.level,
+      hue: this.state.hue,
+      saturation: this.state.saturation
+    }, callback);
   }
 
   getSaturation(callback) {
     const value = this.state.saturation;
-    this.platform.log.debug('Get Characteristic Saturation -> ', value);
+    this.platform.log.debug(`[${this.device.displayName}] Get Saturation  →`, value);
     callback(null, value);
   }
 
@@ -175,22 +174,16 @@ class MilightPlatformAccessory {
     value = Number(value);
     this.state.color_temp = value;
 
-    this.request({
-      method: 'put',
-      json: {
-        status: this.state.status,
-        level: this.state.level,
-        color_temp: this.state.color_temp
-      }
-    }, (err, res) => {
-      this.platform.log.debug('Set Characteristic ColorTemperature -> ', value);
-      callback(err);
-    });
+    this.sendMessageToHub('ColorTemperature', {
+      status: this.state.status,
+      level: this.state.level,
+      color_temp: this.state.color_temp
+    }, callback);
   }
 
   getColorTemperature(callback) {
     const value = this.state.color_temp;
-    this.platform.log.debug('Get Characteristic ColorTemperature -> ', value);
+    this.platform.log.debug(`[${this.device.displayName}] Get ColorTemperature  →`, value);
     callback(null, value);
   }
 }
