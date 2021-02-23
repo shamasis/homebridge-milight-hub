@@ -58,7 +58,7 @@ class MilightPlatformAccessory {
       .on('set', this.setOn.bind(this))
       .on('get', this.getOn.bind(this));
 
-    // register handlers for the Brightness Characteristic
+    // register handlers for the Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.Brightness)
       .on('set', this.setBrightness.bind(this))
       .on('get', this.getBrightness.bind(this));
@@ -87,14 +87,21 @@ class MilightPlatformAccessory {
       method: 'put',
       json: payload,
       timeout: 5000
-    }, (err) => {
+    }, (err, res) => {
       if (err) {
         this.platform.log.error(`[${this.device.displayName}] Error setting Characteristic ${intent}. `, err.message);
         return callback(err);
       }
 
-      this.platform.log.debug(`[${this.device.displayName}] Set ${intent} →`, payload);
-      callback(null);
+      if (res && (res.statusCode === 200)) {
+        this.platform.log.debug(`[${this.device.displayName}] Set ${intent} →`, payload);
+        callback(null);
+      }
+      else {
+        this.platform.log.error(`[${this.device.displayName}] Did not receive OK response from hub for ${intent} Characteristic.`);
+        callback(new Error('Did not receive OK response from hub'));
+      }
+      
     });
   }
 
