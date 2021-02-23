@@ -2,9 +2,52 @@
   "pluginAlias": "Milight Hub",
   "pluginType": "platform",
   "singular": true,
+  "footerDisplay": "Milight Hub ESP8266 Companion Plugin",
   "schema": {
     "type": "object",
     "properties": {
+      "hub": {
+        "title": "Hub Url",
+        "type": "string",
+        "required": true,
+        "minLength": 1,
+        "default": "http://milight-hub.local"
+      },
+
+      "accessories": {
+        "title": "List of your bulbs",
+        "type": "array",
+        "items": {
+          "title": "Bulb",
+          "type": "object",
+          "properties": {
+            "displayName": {
+              "title": "Name your bulb (something unique to identify)",
+              "type": "string",
+              "minLength": 1,
+              "required": true
+            },
+            "deviceId": {
+              "title": "ID of your bulb",
+              "type": "string",
+              "required": true
+            },
+            "remoteType": {
+              "title": "Type of remote",
+              "type": "string",
+              "required": true,
+              "default": "rgb_cct"
+            },
+            "deviceGroup": {
+              "title": "Group of your bulb",
+              "type": "integer",
+              "minLength": 1,
+              "required": true,
+              "default": 1
+            }
+          }
+        }
+      }
     }
   }
 }

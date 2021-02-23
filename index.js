@@ -6,5 +6,4 @@ const {MilightPlatform} = require('./src/platform');
  */
 module.exports = (api) => {
     api.registerPlatform(PLATFORM_NAME, MilightPlatform);
-    api.registerAccessory
 };

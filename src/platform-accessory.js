@@ -1,3 +1,6 @@
+const request = require('request'),
+  {MANUFACTURER, PACKAGE_VERSION} = require('./settings');
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -8,21 +11,31 @@ class MilightPlatformAccessory {
   constructor(platform/*: MilightPlatform*/, accessory/*: PlatformAccessory*/) {
     this.platform = platform;
     this.accessory = accessory;
+    this.device = this.accessory.context.device || (this.accessory.context.device = {});
+    this.state = this.accessory.context.state || (this.accessory.context.state = {});
 
     /**
      * These are just used to create a working example
      * You should implement your own code to track the state of your accessory
      */
-    this.exampleStates = {
-        On: false,
-        Brightness: 100,
-    };
+    (typeof this.state.status !== 'string') && (this.state.status = 'off');
+    (!Number.isFinite(this.state.level)) && (this.state.level = 50);
+    (!Number.isFinite(this.state.color_temp)) && (this.state.color_temp = 262);
+    (!Number.isFinite(this.state.hue)) && (this.state.hue = 0);
+    (!Number.isFinite(this.state.saturation)) && (this.state.saturation = 0);
+
+    this.request = request.defaults({
+      baseUrl: this.platform.config.hub,
+      uri: `/gateways/${this.device.deviceId}/${this.device.remoteType}/${this.device.deviceGroup}`,
+      json: true,
+      timeout: 5000
+    });
 
     // set accessory information
     this.accessory.getService(this.platform.Service.AccessoryInformation)
-      .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Default-Manufacturer')
-      .setCharacteristic(this.platform.Characteristic.Model, 'Default-Model')
-      .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Default-Serial');
+      .setCharacteristic(this.platform.Characteristic.Manufacturer, MANUFACTURER)
+      .setCharacteristic(this.platform.Characteristic.Model, PACKAGE_VERSION)
+      .setCharacteristic(this.platform.Characteristic.SerialNumber, `${this.device.deviceId}-${this.device.remoteType}-${this.device.deviceGroup}`);
 
     // get the LightBulb service if it exists, otherwise create a new LightBulb service
     // you can create multiple services for each accessory
@@ -30,118 +43,156 @@ class MilightPlatformAccessory {
 
     // set the service name, this is what is displayed as the default name on the Home app
     // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.displayName);
 
     // each service must implement at-minimum the "required characteristics" for the given service type
     // see https://developers.homebridge.io/#/service/Lightbulb
 
     // register handlers for the On/Off Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.On)
-      .on('set', this.setOn.bind(this))                // SET - bind to the `setOn` method below
-      .on('get', this.getOn.bind(this));               // GET - bind to the `getOn` method below
+      .on('set', this.setOn.bind(this))
+      .on('get', this.getOn.bind(this));
 
     // register handlers for the Brightness Characteristic
     this.service.getCharacteristic(this.platform.Characteristic.Brightness)
-      .on('set', this.setBrightness.bind(this));       // SET - bind to the 'setBrightness` method below
+      .on('set', this.setBrightness.bind(this))
+      .on('get', this.getBrightness.bind(this));
 
+    this.service.getCharacteristic(this.platform.Characteristic.Hue)
+      .on('set', this.setHue.bind(this))
+      .on('get', this.getHue.bind(this));
 
-    /**
-     * Creating multiple services of the same type.
-     * 
-     * To avoid "Cannot add a Service with the same UUID another Service without also defining a unique 'subtype' property." error,
-     * when creating multiple services of the same type, you need to use the following syntax to specify a name and subtype id:
-     * this.accessory.getService('NAME') || this.accessory.addService(this.platform.Service.Lightbulb, 'NAME', 'USER_DEFINED_SUBTYPE_ID');
-     * 
-     * The USER_DEFINED_SUBTYPE must be unique to the platform accessory (if you platform exposes multiple accessories, each accessory
-     * can use the same sub type id.)
-     */
+    this.service.getCharacteristic(this.platform.Characteristic.Saturation)
+      .on('set', this.setSaturation.bind(this))
+      .on('get', this.getSaturation.bind(this));
 
-    // Example: add two "motion sensor" services to the accessory
-    const motionSensorOneService = this.accessory.getService('Motion Sensor One Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor One Name', 'YourUniqueIdentifier-1');
-
-    const motionSensorTwoService = this.accessory.getService('Motion Sensor Two Name') ||
-      this.accessory.addService(this.platform.Service.MotionSensor, 'Motion Sensor Two Name', 'YourUniqueIdentifier-2');
-
-    /**
-     * Updating characteristics values asynchronously.
-     * 
-     * Example showing how to update the state of a Characteristic asynchronously instead
-     * of using the `on('get')` handlers.
-     * Here we change update the motion sensor trigger states on and off every 10 seconds
-     * the `updateCharacteristic` method.
-     * 
-     */
-    let motionDetected = false;
-    setInterval(() => {
-      // EXAMPLE - inverse the trigger
-      motionDetected = !motionDetected;
-
-      // push the new value to HomeKit
-      motionSensorOneService.updateCharacteristic(this.platform.Characteristic.MotionDetected, motionDetected);
-      motionSensorTwoService.updateCharacteristic(this.platform.Characteristic.MotionDetected, !motionDetected);
-
-      this.platform.log.debug('Triggering motionSensorOneService:', motionDetected);
-      this.platform.log.debug('Triggering motionSensorTwoService:', !motionDetected);
-    }, 10000);
+    this.service.getCharacteristic(this.platform.Characteristic.ColorTemperature)
+      .on('set', this.setColorTemperature.bind(this))
+      .on('get', this.getColorTemperature.bind(this))
+      .setProps({
+        minValue: 153,
+        maxValue: 370
+      });
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
-   */
   setOn(value/*: CharacteristicValue*/, callback/*: CharacteristicSetCallback*/) {
+    value = Boolean(value);
 
     // implement your own code to turn your device on/off
-    this.exampleStates.On = Boolean(value);
+    this.state.status = value ? 'on' : 'off';
 
-    this.platform.log.debug('Set Characteristic On ->', value);
-
-    // you must call the callback function
-    callback(null);
+    this.request({
+      method: 'put',
+      json: {
+        status: this.state.status,
+        level: this.state.level
+      }
+    }, (err, res) => {
+      this.platform.log.debug('Set Characteristic On ->', value);
+      callback(err);
+    });
   }
 
-  /**
-   * Handle the "GET" requests from HomeKit
-   * These are sent when HomeKit wants to know the current state of the accessory, for example, checking if a Light bulb is on.
-   * 
-   * GET requests should return as fast as possbile. A long delay here will result in
-   * HomeKit being unresponsive and a bad user experience in general.
-   * 
-   * If your device takes time to respond you should update the status of your device
-   * asynchronously instead using the `updateCharacteristic` method instead.
-
-   * @example
-   * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
-   */
   getOn(callback/*: CharacteristicGetCallback*/) {
-
-    // implement your own code to check if the device is on
-    const isOn = this.exampleStates.On;
-
-    this.platform.log.debug('Get Characteristic On ->', isOn);
-
-    // you must call the callback function
-    // the first argument should be null if there were no errors
-    // the second argument should be the value to return
-    callback(null, isOn);
+    const value = (this.state.status === 'on');
+    this.platform.log.debug('Get Characteristic On ->', value);
+    callback(null, value);
   }
 
-  /**
-   * Handle "SET" requests from HomeKit
-   * These are sent when the user changes the state of an accessory, for example, changing the Brightness
-   */
   setBrightness(value/*: CharacteristicValue*/, callback/*: CharacteristicSetCallback*/) {
-
+    value = Number(value);
+    
     // implement your own code to set the brightness
-    this.exampleStates.Brightness = Number(value);
+    this.state.level = value;
 
-    this.platform.log.debug('Set Characteristic Brightness -> ', value);
-
-    // you must call the callback function
-    callback(null);
+    this.request({
+      method: 'put',
+      json: {
+        status: this.state.status,
+        level: this.state.level
+      }
+    }, (err, res) => {
+      this.platform.log.debug('Set Characteristic Brightness -> ', value);
+      callback(err);
+    });
   }
 
+  getBrightness(callback/*: CharacteristicGetCallback*/) {
+    const value = this.state.level;
+    this.platform.log.debug('Get Characteristic Brightness ->', value);
+    callback(null, value);
+  }
+
+  setHue(value, callback) {
+    value = Number(value);
+    this.state.hue = value;
+
+    this.request({
+      method: 'put',
+      json: {
+        status: this.state.status,
+        level: this.state.level,
+        hue: this.state.hue,
+        saturation: this.state.saturation
+      }
+    }, (err, res) => {
+      this.platform.log.debug('Set Characteristic Hue -> ', value);
+      callback(err);
+    });
+  }
+
+  getHue(callback) {
+    const value = this.state.hue;
+    this.platform.log.debug('Get Characteristic Hue -> ', value);
+    callback(null, value);
+  }
+
+  setSaturation(value, callback) {
+    value = Number(value);
+    this.state.saturation = value;
+
+    this.request({
+      method: 'put',
+      json: {
+        status: this.state.status,
+        level: this.state.level,
+        hue: this.state.hue,
+        saturation: this.state.saturation
+      }
+    }, (err, res) => {
+      this.platform.log.debug('Set Characteristic Saturation -> ', value);
+      callback(err);
+    });
+  }
+
+  getSaturation(callback) {
+    const value = this.state.saturation;
+    this.platform.log.debug('Get Characteristic Saturation -> ', value);
+    callback(null, value);
+  }
+
+  setColorTemperature(value, callback) {
+    value = Number(value);
+    this.state.color_temp = value;
+
+    this.request({
+      method: 'put',
+      json: {
+        status: this.state.status,
+        level: this.state.level,
+        color_temp: this.state.color_temp
+      }
+    }, (err, res) => {
+      this.platform.log.debug('Set Characteristic ColorTemperature -> ', value);
+      callback(err);
+    });
+  }
+
+  getColorTemperature(callback) {
+    const value = this.state.color_temp;
+    this.platform.log.debug('Get Characteristic ColorTemperature -> ', value);
+    callback(null, value);
+  }
 }
 
 module.exports = {MilightPlatformAccessory};
