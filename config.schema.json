@@ -9,6 +9,7 @@
       "hub": {
         "title": "Hub Url",
         "type": "string",
+        "description": "This is the URL to reach your ESP-based hub.<br /><br /><b>For better performance use the IP address of the hub directly.</b> If you are using the IP address, please ensure to reserve the IP address in your router's DHCP settings in order to prevent it from changing frequently.",
         "required": true,
         "minLength": 1,
         "default": "http://milight-hub.local"
@@ -22,19 +23,22 @@
           "type": "object",
           "properties": {
             "displayName": {
-              "title": "Name your bulb (something unique to identify)",
+              "title": "Display Name <em>(something unique)</em>",
+              "description": "This name will be visible on your Home App. Ensure that you provide a unique bulb name.",
               "type": "string",
               "minLength": 1,
               "required": true
             },
             "deviceId": {
-              "title": "ID of your bulb",
+              "title": "Bulb ID",
+              "description": "This is a 2-byte device ID. Can be decimal or hexadecimal.",
               "type": "string",
               "required": true
             },
             "remoteType": {
-              "title": "Type of remote",
+              "title": "Remote Type",
               "type": "string",
+              "description": "Type of remote that is used to control the bulb.",
               "required": true,
               "default": "rgb_cct",
               "enum": ["rgb_cct", "rgbw", "rgb", "cct", "fut089", "fut091", "fut020"]
@@ -42,12 +46,20 @@
             "deviceGroup": {
               "title": "Group of your bulb",
               "type": "integer",
+              "description": "Group ID. Should be 0-8, depending on remote type. Group 0 is a &quot;wildcard&quot; group. All bulbs paired with the same device ID will respond to commands sent to Group 0.",
               "required": true,
               "default": 1,
               "enum": [0, 1, 2, 3, 4, 5, 6, 7, 8]
             }
           }
         }
+      },
+
+      "autoDiscoverDevices": {
+        "title": "Auto discover bulbs directly defined in the hub <em>(experimental)</em>",
+        "type": "boolean",
+        "description": "If you have defined &quot;aliases&quot; in the ESP-based hub's web interface, then they can be automatically imported when this setting is checked.",
+        "default": false
       }
     }
   }
