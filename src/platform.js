@@ -29,6 +29,7 @@ class MilightPlatform {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
       this.loadDevices();
+      this.pruneDevices();
     });
   }
 
@@ -50,9 +51,7 @@ class MilightPlatform {
    */
   loadDevices() {
 
-    const configuredAccessories = this.config.accessories;
-    
-    configuredAccessories.forEach((device) => {
+    (this.config.accessories || []).forEach((device) => {
       
       const uuid = this.api.hap.uuid.generate(MilightPlatformAccessory.getUUIDBaseForDevice(device)),
         existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
@@ -66,13 +65,8 @@ class MilightPlatform {
         // this.api.updatePlatformAccessories([existingAccessory]);
 
         // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
-        new MilightPlatformAccessory(this, existingAccessory);
-
-        // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
-        // remove platform accessories when no longer present
-        // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
-        // this.log.info('Removing existing accessory from cache:', existingAccessory.displayName);
+        // this is imported from `platform-accessory.js`
+        new MilightPlatformAccessory(this, existingAccessory); // anyway this is cached
       } else {
         // the accessory does not yet exist, so we need to create it
         this.log.info('Adding new accessory:', device.displayName);
@@ -84,6 +78,7 @@ class MilightPlatform {
         // the `context` property can be used to store any data about the accessory you may need
         accessory.context.device = device;
         accessory.context.state = {};
+        accessory.context.autoDiscovered = false;
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
@@ -92,27 +87,31 @@ class MilightPlatform {
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
-
-      // remove extra accessories
-      let accessoriesToRemove = [];
-      this.accessories.forEach((existingAccessory) => {
-        const matchingAccessory = configuredAccessories.find((device) => {
-            const uuid = this.api.hap.uuid.generate(MilightPlatformAccessory.getUUIDBaseForDevice(device));
-            return uuid === existingAccessory.UUID;
-          });
-
-        if (!matchingAccessory) {
-          accessoriesToRemove.push(existingAccessory);
-        }
-      });
-
-      // @todo fix removal logic here. throwing error when many removed/edited at one time in config
-
-      if (accessoriesToRemove.length) {
-        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessoriesToRemove);
-        this.log.info('Removing existing accessory from cache:', accessoriesToRemove.length);
-      }
     });
+  }
+
+  /**
+   * Traverse the cached and configured accessory list and then remove the cached ones that are not defined
+   * within config.
+   */
+  pruneDevices () {
+    const configuredAccessories = this.config.accessories || [],
+      loadedAccessories = this.accessories || [];
+    
+    let surplusAccessories = loadedAccessories.filter((accessory) => {
+      if (accessory.context.autoDiscovered === true) {
+        return false;
+      }
+
+      // check if a configured accessory with same UUID is NOT found
+      return !configuredAccessories.find((device) => 
+        (this.api.hap.uuid.generate(MilightPlatformAccessory.getUUIDBaseForDevice(device)) === accessory.UUID));
+    });
+
+    if (surplusAccessories.length) {
+      this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, surplusAccessories);
+      this.log.info('Removing existing accessory from cache:', surplusAccessories.map((accessory) => accessory.displayName));
+    }
   }
 }
 
