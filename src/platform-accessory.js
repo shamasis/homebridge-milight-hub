@@ -1,6 +1,23 @@
 const request = require('request'),
   {MANUFACTURER, PACKAGE_VERSION} = require('./settings');
 
+const 
+  COLOR_VARIANTS = {
+    "rgbw": true,
+    "rgb_cct": true,
+    "rgb": true,
+    "fut089": true,
+    "fut020": true
+  },
+
+  WHITE_VARIANTS = {
+    "rgbw": true,
+    "rgb_cct": true,
+    "cct": true,
+    "fut089": true,
+    "fut091": true
+  };
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -8,7 +25,15 @@ const request = require('request'),
  */
 class MilightPlatformAccessory {
   static getUUIDBaseForDevice (device) {
-    return `${device.displayName}-${device.deviceId}-${device.remoteType}-${device.deviceGroup}`;
+    return `${device.displayName}-${device.deviceId}-${device.remoteType}-${device.deviceGroup}-${device.deviceAlias}`;
+  }
+
+  static supportsColor (device) {
+    return Boolean(COLOR_VARIANTS[device.remoteType]);
+  }
+
+  static supportsWhite (device) {
+    return Boolean(WHITE_VARIANTS[device.remoteType]);
   }
   
   /**
@@ -66,21 +91,25 @@ class MilightPlatformAccessory {
       .on('set', this.setBrightness.bind(this))
       .on('get', this.getBrightness.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.Hue)
-      .on('set', this.setHue.bind(this))
-      .on('get', this.getHue.bind(this));
+    if (MilightPlatformAccessory.supportsColor(this.device)) {
+      this.service.getCharacteristic(this.platform.Characteristic.Hue)
+        .on('set', this.setHue.bind(this))
+        .on('get', this.getHue.bind(this));
 
-    this.service.getCharacteristic(this.platform.Characteristic.Saturation)
-      .on('set', this.setSaturation.bind(this))
-      .on('get', this.getSaturation.bind(this));
+      this.service.getCharacteristic(this.platform.Characteristic.Saturation)
+        .on('set', this.setSaturation.bind(this))
+        .on('get', this.getSaturation.bind(this));
+    }
 
-    this.service.getCharacteristic(this.platform.Characteristic.ColorTemperature)
-      .on('set', this.setColorTemperature.bind(this))
-      .on('get', this.getColorTemperature.bind(this))
-      .setProps({
-        minValue: 153,
-        maxValue: 370
-      });
+    if (MilightPlatformAccessory.supportsWhite(this.device)) {
+      this.service.getCharacteristic(this.platform.Characteristic.ColorTemperature)
+        .on('set', this.setColorTemperature.bind(this))
+        .on('get', this.getColorTemperature.bind(this))
+        .setProps({
+          minValue: 153,
+          maxValue: 370
+        });
+    }
   }
 
   sendMessageToHub(intent, payload, callback) {
