@@ -15,7 +15,7 @@
         "default": "http://milight-hub.local"
       },
 
-      "accessories": {
+      "devices": {
         "title": "List of your bulbs",
         "type": "array",
         "items": {
@@ -44,7 +44,7 @@
               "enum": ["rgb_cct", "rgbw", "rgb", "cct", "fut089", "fut091", "fut020"]
             },
             "deviceGroup": {
-              "title": "Group of your bulb",
+              "title": "Group",
               "type": "integer",
               "description": "Group ID. Should be 0-8, depending on remote type. Group 0 is a &quot;wildcard&quot; group. All bulbs paired with the same device ID will respond to commands sent to Group 0.",
               "required": true,
