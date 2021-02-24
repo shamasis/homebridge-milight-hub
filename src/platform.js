@@ -50,6 +50,7 @@ class MilightPlatform {
    * must not be registered again to prevent "duplicate UUID" errors.
    */
   loadDevices() {
+    const accessoriesToRegister = []; // this array will hold accessories that needs to be appended
 
     (this.config.accessories || []).forEach((device) => {
       
@@ -67,7 +68,9 @@ class MilightPlatform {
         // create the accessory handler for the restored accessory
         // this is imported from `platform-accessory.js`
         new MilightPlatformAccessory(this, existingAccessory); // anyway this is cached
-      } else {
+      } 
+      
+      else {
         // the accessory does not yet exist, so we need to create it
         this.log.info('Adding new accessory:', device.displayName);
 
@@ -84,10 +87,14 @@ class MilightPlatform {
         // this is imported from `platformAccessory.ts`
         new MilightPlatformAccessory(this, accessory);
 
-        // link the accessory to your platform
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        accessoriesToRegister.push(accessory);
       }
     });
+
+    // link the new accessories to platform
+    if (accessoriesToRegister.length) {
+      this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, accessoriesToRegister);
+    }
   }
 
   /**
