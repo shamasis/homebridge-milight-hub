@@ -115,7 +115,8 @@ class MilightPlatform {
       loadedAccessories = this.accessories || [];
     
     let surplusAccessories = loadedAccessories.filter((accessory) => {
-      if (accessory.context.autoDiscovered === true) {
+      // here, we check if autoDiscoverDevices is turned off. If so, it then removes the auto discovered devices.
+      if (this.config.autoDiscoverDevices && accessory.context.autoDiscovered === true) {
         return false;
       }
 
