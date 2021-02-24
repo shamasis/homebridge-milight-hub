@@ -58,7 +58,7 @@
       "autoDiscoverDevices": {
         "title": "Auto discover bulbs directly defined in the hub <em>(experimental)</em>",
         "type": "boolean",
-        "description": "If you have defined &quot;aliases&quot; in the ESP-based hub's web interface, then they can be automatically imported when this setting is checked.",
+        "description": "If you have defined &quot;aliases&quot; in the ESP-based hub's web interface, then they can be automatically imported when this setting is checked.<br /><br />Currently this is done once when Homebridge starts.",
         "default": false
       }
     }
