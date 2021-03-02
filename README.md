@@ -22,6 +22,8 @@ The [Homebridge Config UI X](https://github.com/oznu/homebridge-config-ui-x) sup
 2. In the prominent search box within plugin section, search for "Milight Hub" and you would see one listed from the author `@shamasis`. Click "install".
 3. It should complete installation and present you with a settings screen. Use the instructions on the settings screen to configure your Milights.
 
+<img width="794" alt="image" src="https://user-images.githubusercontent.com/232373/109686582-6c804580-7ba8-11eb-99d8-16c87a89edb6.png">
+
 
 ### Installing without Homebridge Config UI
 
@@ -77,6 +79,9 @@ If you are directly using the Milight Hub's web interface to device devices, tho
   }]
 }
 ```
+
+<img width="496" alt="image" src="https://user-images.githubusercontent.com/232373/109686315-2aef9a80-7ba8-11eb-8281-21766a4c12b6.png">
+
 
 ## Usage
 
